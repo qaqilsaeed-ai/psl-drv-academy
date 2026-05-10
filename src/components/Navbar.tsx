@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Phone, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from './ui/button';
-import { auth, signInWithGoogle, logout, db } from '../firebase';
+import { auth, logout, db } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
+import AuthModal from './AuthModal';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -39,6 +42,11 @@ export default function Navbar() {
     });
     return () => unsubscribe();
   }, []);
+
+  const openAuth = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
 
   const navLinks = [
     { label: 'Home', href: '#home' },
@@ -133,20 +141,7 @@ export default function Navbar() {
             <Button 
               variant="outline"
               className="border-amber text-amber hover:bg-amber hover:text-charcoal font-display font-semibold uppercase tracking-wider text-sm px-6"
-              onClick={async () => {
-                try {
-                  await signInWithGoogle();
-                } catch (error: any) {
-                  console.error("Sign in error:", error);
-                  if (error.code === 'auth/popup-blocked') {
-                    toast.error("Sign-in popup was blocked by your browser. Please allow popups for this site.");
-                  } else if (error.code === 'auth/cancelled-popup-request') {
-                    // Silent
-                  } else {
-                    toast.error("Failed to sign in with Google. Please try again.");
-                  }
-                }
-              }}
+              onClick={() => openAuth('signin')}
             >
               <LogIn className="w-4 h-4 mr-2" />
               Sign in
@@ -224,18 +219,9 @@ export default function Navbar() {
                 <Button 
                   variant="outline"
                   className="border-amber text-amber hover:bg-amber/10 font-display font-semibold uppercase tracking-wider text-sm w-full"
-                  onClick={async () => {
+                  onClick={() => {
                     setIsMobileMenuOpen(false);
-                    try {
-                      await signInWithGoogle();
-                    } catch (error: any) {
-                      console.error("Sign in error:", error);
-                      if (error.code === 'auth/popup-blocked') {
-                        toast.error("Sign-in popup was blocked by your browser. Please allow popups for this site.");
-                      } else {
-                        toast.error("Failed to sign in with Google. Please try again.");
-                      }
-                    }
+                    openAuth('signin');
                   }}
                 >
                   <LogIn className="w-4 h-4 mr-2" />
@@ -256,6 +242,11 @@ export default function Navbar() {
           </div>
         </div>
       )}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        defaultMode={authMode} 
+      />
     </nav>
   );
 }

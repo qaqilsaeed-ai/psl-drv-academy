@@ -5,10 +5,11 @@ import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { DayPicker } from 'react-day-picker';
 import { format, addDays, isBefore, startOfToday, parse } from 'date-fns';
-import { auth, db, signInWithGoogle, logout, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, logout, handleFirestoreError, OperationType } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, doc, setDoc, onSnapshot, query, where, writeBatch } from 'firebase/firestore';
 import { generateGoogleCalendarUrl, generateOutlookCalendarUrl, generateIcsFile } from '../lib/calendar';
+import AuthModal from './AuthModal';
 
 export default function Contact() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -22,6 +23,7 @@ export default function Contact() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [lastBooking, setLastBooking] = useState<any>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -424,20 +426,7 @@ export default function Contact() {
                     variant="outline" 
                     size="sm" 
                     className="border-amber text-charcoal hover:bg-amber/10"
-                    onClick={async () => {
-                      try {
-                        await signInWithGoogle();
-                      } catch (error: any) {
-                        console.error("Sign in error:", error);
-                        if (error.code === 'auth/popup-blocked') {
-                          toast.error("Sign-in popup was blocked by your browser. Please allow popups for this site.");
-                        } else if (error.code === 'auth/cancelled-popup-request') {
-                          // Silent
-                        } else {
-                          toast.error("Failed to sign in with Google. Please try again.");
-                        }
-                      }
-                    }}
+                    onClick={() => setIsAuthModalOpen(true)}
                   >
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign in {contactMode === 'booking' ? 'for faster booking' : 'to save your message'}
@@ -1001,6 +990,11 @@ export default function Contact() {
           </div>
         )}
       </AnimatePresence>
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </section>
   );
 }
