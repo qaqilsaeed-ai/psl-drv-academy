@@ -479,62 +479,78 @@ export default function Contact() {
                       <CalendarIcon className="w-4 h-4 text-amber" />
                       <span>Select Preferred Date</span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {Array.from({ length: 14 }, (_, i) => addDays(new Date(), i + 1)).map((date) => {
-                        const dateStr = format(date, 'yyyy-MM-dd');
-                        const bookingCount = monthBookings[dateStr] || 0;
-                        const isFullyBooked = bookingCount >= timeSlots.length;
-                        const isPartiallyBooked = bookingCount > 0 && bookingCount < timeSlots.length;
-                        const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
-                        
-                        return (
-                          <button
-                            key={dateStr}
-                            type="button"
-                            onClick={() => setSelectedDate(date)}
-                            className={`relative p-4 rounded-sm transition-all duration-300 border-2 text-center group ${
-                              isSelected
-                                ? 'bg-charcoal border-charcoal text-white shadow-xl -translate-y-1' 
-                                : isFullyBooked
-                                  ? 'bg-rose-50 border-rose-100 text-rose-300 cursor-not-allowed'
-                                  : 'bg-white border-slate-100 text-charcoal hover:border-amber hover:bg-slate-50 hover:-translate-y-0.5'
-                            }`}
-                          >
-                            <div className="flex flex-col items-center">
-                              <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${
-                                isSelected ? 'text-amber' : 'text-charcoal/40'
-                              }`}>
-                                {format(date, 'EEE')}
-                              </span>
-                              <span className="text-2xl font-display font-bold leading-none mb-1">
-                                {format(date, 'd')}
-                              </span>
-                              <span className={`text-[10px] uppercase font-bold tracking-tighter ${
-                                isSelected ? 'text-white/60' : 'text-charcoal/40'
-                              }`}>
-                                {format(date, 'MMM')}
-                              </span>
-                            </div>
+                    <div className="space-y-8">
+                      {Object.entries(
+                        Array.from({ length: 28 }, (_, i) => addDays(new Date(), i + 1)).reduce((acc, date) => {
+                          const monthName = format(date, 'MMMM yyyy');
+                          if (!acc[monthName]) acc[monthName] = [];
+                          acc[monthName].push(date);
+                          return acc;
+                        }, {} as Record<string, Date[]>)
+                      ).map(([month, dates]) => (
+                        <div key={month} className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-charcoal/40 whitespace-nowrap">
+                              {month}
+                            </h4>
+                            <div className="h-px w-full bg-charcoal/5" />
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {dates.map((date) => {
+                              const dateStr = format(date, 'yyyy-MM-dd');
+                              const bookingCount = monthBookings[dateStr] || 0;
+                              const isFullyBooked = bookingCount >= timeSlots.length;
+                              const isPartiallyBooked = bookingCount > 0 && bookingCount < timeSlots.length;
+                              const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
+                              
+                              return (
+                                <button
+                                  key={dateStr}
+                                  type="button"
+                                  onClick={() => setSelectedDate(date)}
+                                  className={`relative flex flex-col rounded-sm transition-all duration-300 border-2 overflow-hidden group ${
+                                    isSelected
+                                      ? 'bg-charcoal border-charcoal text-white shadow-xl -translate-y-1' 
+                                      : isFullyBooked
+                                        ? 'bg-rose-50 border-rose-100 text-rose-300 cursor-not-allowed'
+                                        : 'bg-white border-slate-100 text-charcoal hover:border-amber hover:bg-slate-50 hover:-translate-y-0.5'
+                                  }`}
+                                >
+                                  {/* Sectioned Day Data */}
+                                  <div className={`py-1 text-[8px] uppercase font-black tracking-widest border-b ${
+                                    isSelected ? 'bg-amber text-charcoal border-charcoal' : 'bg-charcoal/5 border-charcoal/5 text-charcoal/40'
+                                  }`}>
+                                    {format(date, 'EEEE')}
+                                  </div>
+                                  
+                                  <div className="flex-1 py-3 flex flex-col items-center justify-center">
+                                    <span className="text-3xl font-display font-black leading-none tracking-tighter">
+                                      {format(date, 'd')}
+                                    </span>
+                                  </div>
 
-                            {/* Status Indicator Dot */}
-                            <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
-                              isSelected 
-                                ? 'bg-amber animate-pulse' 
-                                : isFullyBooked 
-                                  ? 'bg-rose-500' 
-                                  : isPartiallyBooked 
-                                    ? 'bg-amber' 
-                                    : 'bg-emerald-500'
-                            }`} />
+                                  <div className={`py-1 text-[8px] uppercase font-black tracking-widest border-t ${
+                                    isSelected ? 'bg-white/10 border-white/10 text-amber' : 'bg-charcoal/5 border-charcoal/5 text-charcoal/40'
+                                  }`}>
+                                    {format(date, 'MMM')}
+                                  </div>
 
-                            <div className={`mt-2 text-[8px] uppercase font-black tracking-wider ${
-                              isSelected ? 'text-amber/80' : isFullyBooked ? 'text-rose-300' : 'text-charcoal/20'
-                            }`}>
-                              {isSelected ? 'Selected' : isFullyBooked ? 'Fully Booked' : isPartiallyBooked ? 'Partial' : 'Available'}
-                            </div>
-                          </button>
-                        );
-                      })}
+                                  {/* Status Dot */}
+                                  <div className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${
+                                    isSelected 
+                                      ? 'bg-white animate-pulse' 
+                                      : isFullyBooked 
+                                        ? 'bg-rose-500' 
+                                        : isPartiallyBooked 
+                                          ? 'bg-amber' 
+                                          : 'bg-emerald-500'
+                                  }`} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <div>
@@ -675,17 +691,25 @@ export default function Contact() {
                       <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="mt-6 p-4 bg-amber border-2 border-charcoal rounded-sm shadow-[4px_4px_0px_0px_rgba(18,18,18,1)]"
+                        className="mt-6 space-y-3"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-sm bg-charcoal flex items-center justify-center shrink-0">
-                            <CalendarIcon className="w-5 h-5 text-amber" />
+                        <p className="text-[10px] uppercase font-black text-charcoal/40 tracking-[0.2em] mb-1 pl-1">Your Selection Selection</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <div className="bg-amber border-2 border-charcoal p-3 rounded-sm shadow-[4px_4px_0px_0px_rgba(33,37,41,1)]">
+                            <p className="text-[8px] uppercase font-black text-charcoal/60 tracking-widest mb-1">Date</p>
+                            <p className="text-2xl font-display font-black text-charcoal leading-none">{format(selectedDate, 'do')}</p>
                           </div>
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-charcoal/60 tracking-widest leading-none mb-1">Your Selected Slot</p>
-                            <p className="text-charcoal font-display font-bold text-lg leading-none">
-                              {format(selectedDate, 'EEE, MMM do')} @ {selectedTime} ({durations.find(d => d.value === selectedDuration)?.label})
-                            </p>
+                          <div className="bg-charcoal border-2 border-charcoal p-3 rounded-sm shadow-[4px_4px_0px_0px_rgba(255,191,0,1)]">
+                            <p className="text-[8px] uppercase font-black text-amber/60 tracking-widest mb-1 text-white/50">Month</p>
+                            <p className="text-sm font-bold text-white uppercase tracking-widest leading-none mt-1">{format(selectedDate, 'MMMM')}</p>
+                          </div>
+                          <div className="bg-white border-2 border-charcoal p-3 rounded-sm shadow-[4px_4px_0px_0px_rgba(255,191,0,1)]">
+                            <p className="text-[8px] uppercase font-black text-charcoal/40 tracking-widest mb-1">Day</p>
+                            <p className="text-sm font-bold text-charcoal uppercase tracking-widest leading-none mt-1">{format(selectedDate, 'EEEE')}</p>
+                          </div>
+                          <div className="bg-amber border-2 border-charcoal p-3 rounded-sm shadow-[4px_4px_0px_0px_rgba(33,37,41,1)]">
+                            <p className="text-[8px] uppercase font-black text-charcoal/60 tracking-widest mb-1">Time</p>
+                            <p className="text-xl font-display font-bold text-charcoal leading-none mt-1">{selectedTime}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -888,16 +912,22 @@ export default function Contact() {
 
               <div className="p-6 space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-sm border border-border">
-                    <div className="w-8 h-8 rounded-sm bg-amber/10 flex items-center justify-center shrink-0">
-                      <Clock className="w-4 h-4 text-amber" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 bg-slate-50 rounded-sm border border-border">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Date</p>
+                      <p className="text-xl font-display font-bold text-charcoal">{selectedDate && format(selectedDate, 'do')}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Date & Time</p>
-                      <p className="text-charcoal font-display font-bold text-lg">
-                        {selectedDate && format(selectedDate, 'EEEE, MMMM do')}
-                      </p>
-                      <p className="text-amber-dark font-bold">at {selectedTime}</p>
+                    <div className="p-3 bg-slate-50 rounded-sm border border-border">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Month</p>
+                      <p className="text-xl font-display font-bold text-charcoal">{selectedDate && format(selectedDate, 'MMMM')}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-sm border border-border">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Day</p>
+                      <p className="text-sm font-bold text-charcoal uppercase tracking-wider">{selectedDate && format(selectedDate, 'EEEE')}</p>
+                    </div>
+                    <div className="p-3 bg-emerald-50 rounded-sm border border-emerald-100">
+                      <p className="text-[10px] uppercase font-bold text-emerald-600/60 tracking-widest mb-1">Time</p>
+                      <p className="text-xl font-display font-bold text-emerald-700">{selectedTime}</p>
                     </div>
                   </div>
 
@@ -988,16 +1018,30 @@ export default function Contact() {
 
               <div className="p-8">
                 <div className="bg-slate-50 border border-border rounded-sm p-6 mb-8 text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber/10 border border-amber/20 rounded-full mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber/10 border border-amber/20 rounded-full mb-6">
                     <CalendarIcon className="w-3 h-3 text-amber" />
-                    <span className="text-[10px] font-bold text-amber uppercase tracking-widest">Scheduled Event</span>
+                    <span className="text-[10px] font-bold text-amber uppercase tracking-widest">Scheduled Appointment</span>
                   </div>
-                  <h4 className="font-display text-xl font-bold text-charcoal mb-1">
-                    {format(parse(lastBooking.date, 'yyyy-MM-dd', new Date()), 'EEEE, MMMM do')}
-                  </h4>
-                  <p className="text-charcoal/60 font-bold text-lg mb-4">
-                    at {lastBooking.time} ({durations.find(d => d.value === lastBooking.duration)?.label})
-                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-6">
+                    <div className="p-3 bg-white border border-border rounded-sm">
+                      <p className="text-[8px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Date</p>
+                      <p className="text-2xl font-display font-bold text-charcoal leading-none">{format(parse(lastBooking.date, 'yyyy-MM-dd', new Date()), 'do')}</p>
+                    </div>
+                    <div className="p-3 bg-white border border-border rounded-sm">
+                      <p className="text-[8px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Month</p>
+                      <p className="text-lg font-display font-bold text-charcoal leading-none uppercase tracking-wider mt-1">{format(parse(lastBooking.date, 'yyyy-MM-dd', new Date()), 'MMMM')}</p>
+                    </div>
+                    <div className="p-3 bg-white border border-border rounded-sm">
+                      <p className="text-[8px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Day/Time</p>
+                      <p className="text-sm font-bold text-charcoal uppercase tracking-wider">{format(parse(lastBooking.date, 'yyyy-MM-dd', new Date()), 'EEEE')} @ {lastBooking.time}</p>
+                    </div>
+                    <div className="p-3 bg-amber/20 border border-amber/30 rounded-sm">
+                      <p className="text-[8px] uppercase font-bold text-amber-700 tracking-widest mb-1">Duration</p>
+                      <p className="text-sm font-bold text-charcoal uppercase tracking-wider">{durations.find(d => d.value === lastBooking.duration)?.label}</p>
+                    </div>
+                  </div>
+
                   <div className="flex flex-wrap justify-center gap-2">
                     <span className="px-3 py-1 bg-charcoal/5 rounded-sm text-[10px] font-bold text-charcoal/60 uppercase">{lastBooking.service}</span>
                     <span className="px-3 py-1 bg-charcoal/5 rounded-sm text-[10px] font-bold text-charcoal/60 uppercase">{lastBooking.city}</span>

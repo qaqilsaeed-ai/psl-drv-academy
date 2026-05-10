@@ -67,7 +67,7 @@ export default function MeetTheInstructor() {
               viewport={{ once: true }}
             >
               <span className="inline-block py-1 px-4 bg-amber/10 text-charcoal text-xs font-black uppercase tracking-[0.3em] mb-4">
-                Lead Driving Instructor
+                Founder & Lead Mentor
               </span>
               <h2 className="text-4xl md:text-5xl font-display font-bold text-charcoal mb-6 uppercase tracking-tight leading-none">
                 Meet <span className="text-amber">Kaz</span>
