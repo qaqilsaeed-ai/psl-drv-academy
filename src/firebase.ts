@@ -1,39 +1,15 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, Auth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer, Firestore } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
-let app: FirebaseApp | null = null;
-let authInstance: Auth | null = null;
-let dbInstance: Firestore | null = null;
-
-function getApp() {
-  if (!app) {
-    app = initializeApp(firebaseConfig);
-  }
-  return app;
-}
-
-export const getAuthInstance = () => {
-  if (!authInstance) {
-    authInstance = getAuth(getApp());
-  }
-  return authInstance;
-};
-
-export const getDb = () => {
-  if (!dbInstance) {
-    dbInstance = getFirestore(getApp(), firebaseConfig.firestoreDatabaseId);
-  }
-  return dbInstance;
-};
-
-export const auth = getAuthInstance();
-export const db = getDb();
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const googleProvider = new GoogleAuthProvider();
 
-export const signInWithGoogle = () => signInWithPopup(getAuthInstance(), googleProvider);
-export const logout = () => signOut(getAuthInstance());
+export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const logout = () => signOut(auth);
 
 // --- Firestore Error Handling ---
 export enum OperationType {

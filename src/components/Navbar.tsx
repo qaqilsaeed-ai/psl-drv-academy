@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { auth, signInWithGoogle, logout, db } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { toast } from 'sonner';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -132,7 +133,20 @@ export default function Navbar() {
             <Button 
               variant="outline"
               className="border-amber text-amber hover:bg-amber hover:text-charcoal font-display font-semibold uppercase tracking-wider text-sm px-6"
-              onClick={signInWithGoogle}
+              onClick={async () => {
+                try {
+                  await signInWithGoogle();
+                } catch (error: any) {
+                  console.error("Sign in error:", error);
+                  if (error.code === 'auth/popup-blocked') {
+                    toast.error("Sign-in popup was blocked by your browser. Please allow popups for this site.");
+                  } else if (error.code === 'auth/cancelled-popup-request') {
+                    // Silent
+                  } else {
+                    toast.error("Failed to sign in with Google. Please try again.");
+                  }
+                }
+              }}
             >
               <LogIn className="w-4 h-4 mr-2" />
               Sign in
@@ -210,9 +224,18 @@ export default function Navbar() {
                 <Button 
                   variant="outline"
                   className="border-amber text-amber hover:bg-amber/10 font-display font-semibold uppercase tracking-wider text-sm w-full"
-                  onClick={() => {
+                  onClick={async () => {
                     setIsMobileMenuOpen(false);
-                    signInWithGoogle();
+                    try {
+                      await signInWithGoogle();
+                    } catch (error: any) {
+                      console.error("Sign in error:", error);
+                      if (error.code === 'auth/popup-blocked') {
+                        toast.error("Sign-in popup was blocked by your browser. Please allow popups for this site.");
+                      } else {
+                        toast.error("Failed to sign in with Google. Please try again.");
+                      }
+                    }
                   }}
                 >
                   <LogIn className="w-4 h-4 mr-2" />

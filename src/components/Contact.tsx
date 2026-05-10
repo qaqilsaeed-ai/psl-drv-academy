@@ -424,7 +424,20 @@ export default function Contact() {
                     variant="outline" 
                     size="sm" 
                     className="border-amber text-charcoal hover:bg-amber/10"
-                    onClick={signInWithGoogle}
+                    onClick={async () => {
+                      try {
+                        await signInWithGoogle();
+                      } catch (error: any) {
+                        console.error("Sign in error:", error);
+                        if (error.code === 'auth/popup-blocked') {
+                          toast.error("Sign-in popup was blocked by your browser. Please allow popups for this site.");
+                        } else if (error.code === 'auth/cancelled-popup-request') {
+                          // Silent
+                        } else {
+                          toast.error("Failed to sign in with Google. Please try again.");
+                        }
+                      }
+                    }}
                   >
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign in {contactMode === 'booking' ? 'for faster booking' : 'to save your message'}
