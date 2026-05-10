@@ -7,15 +7,15 @@ export default function MeetTheInstructor() {
   const achievements = [
     {
       icon: <Award className="w-5 h-5 text-amber" />,
-      text: "15+ Years Professional Experience"
+      text: "DVSA Approved Grade A Instructor"
     },
     {
       icon: <BookOpen className="w-5 h-5 text-amber" />,
-      text: "BFA from Central Saint Martins"
+      text: "15+ Years teaching in Sheffield"
     },
     {
       icon: <Heart className="w-5 h-5 text-amber" />,
-      text: "Passionate about Student Success"
+      text: "Specialist in Nervous Learners"
     }
   ];
 
@@ -37,8 +37,8 @@ export default function MeetTheInstructor() {
               
               <div className="relative z-10 overflow-hidden rounded-sm border-4 border-charcoal bg-white shadow-[20px_20px_0px_0px_rgba(255,191,0,1)] hover:shadow-[10px_10px_0px_0px_rgba(33,37,41,1)] transition-all duration-500">
                 <img 
-                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=800&h=1000" 
-                  alt="Instructor Sarah Collins" 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800&h=1000" 
+                  alt="Instructor Kaz" 
                   className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
@@ -53,7 +53,7 @@ export default function MeetTheInstructor() {
               >
                 <Quote className="w-8 h-8 text-amber mb-4 opacity-50" />
                 <p className="font-display font-medium italic text-lg leading-relaxed">
-                  "Every great artist was first an amateur. I'm here to bridge that gap."
+                  "My goal isn't just to help you pass, but to make you a safe, confident driver for life."
                 </p>
               </motion.div>
             </div>
@@ -67,15 +67,15 @@ export default function MeetTheInstructor() {
               viewport={{ once: true }}
             >
               <span className="inline-block py-1 px-4 bg-amber/10 text-charcoal text-xs font-black uppercase tracking-[0.3em] mb-4">
-                Founder & Lead Mentor
+                Lead Driving Instructor
               </span>
               <h2 className="text-4xl md:text-5xl font-display font-bold text-charcoal mb-6 uppercase tracking-tight leading-none">
-                Meet Sarah <span className="text-amber">Collins</span>
+                Meet <span className="text-amber">Kaz</span>
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                As a classically trained artist with over a decade of teaching experience, Sarah founded PSL Drawing Academy to dismantle the myth that "talent" is something you're born with. 
+                With over a decade of experience navigating the roads of South Yorkshire, Kaz founded PSL Driving Academy to provide more than just "standard" lessons. 
                 <br /><br />
-                Her methodology focuses on the science of seeing—teaching students how to observe light, shadow, and proportion before ever picking up a pencil. She has mentored hundreds of students, many of whom have gone on to prestigious art schools and professional careers.
+                His methodology focuses on building deep technical competence and road awareness. Kaz has helped hundreds of students in Sheffield and Rotherham gain their independence, with a specialized focus on helping nervous learners overcome their anxiety behind the wheel.
               </p>
 
               <div className="space-y-4 mb-10">

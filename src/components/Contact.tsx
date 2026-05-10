@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Phone, Mail, User, MapPin, Send, MessageCircle, Calendar as CalendarIcon, Clock, LogIn, LogOut, X, Loader2, CheckCircle2, AlertCircle, Share2, Download, CalendarPlus } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import { DayPicker } from 'react-day-picker';
 import { format, addDays, isBefore, startOfToday, parse } from 'date-fns';
 import { auth, db, logout, handleFirestoreError, OperationType } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -475,33 +474,68 @@ export default function Contact() {
 
               {contactMode === 'booking' && (
                 <div className="grid md:grid-cols-2 gap-8">
-                  <div className="flex justify-center bg-charcoal/5 p-4 rounded-sm">
-                    <DayPicker
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      disabled={{ before: addDays(new Date(), 1) }}
-                      className="rdp-custom"
-                      modifiers={{
-                        fullyBooked: (date) => {
-                          const dateStr = format(date, 'yyyy-MM-dd');
-                          return monthBookings[dateStr] >= 10;
-                        },
-                        partiallyBooked: (date) => {
-                          const dateStr = format(date, 'yyyy-MM-dd');
-                          return monthBookings[dateStr] > 0 && monthBookings[dateStr] < 10;
-                        },
-                        available: (date) => {
-                          const dateStr = format(date, 'yyyy-MM-dd');
-                          return !monthBookings[dateStr] && isBefore(startOfToday(), date);
-                        }
-                      }}
-                      modifiersClassNames={{
-                        fullyBooked: 'rdp-day_fully-booked',
-                        partiallyBooked: 'rdp-day_partially-booked',
-                        available: 'rdp-day_available'
-                      }}
-                    />
+                  <div className="bg-charcoal/5 p-6 rounded-sm border border-charcoal/10 overflow-y-auto max-h-[500px]">
+                    <div className="flex items-center gap-2 text-charcoal font-bold mb-4">
+                      <CalendarIcon className="w-4 h-4 text-amber" />
+                      <span>Select Preferred Date</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {Array.from({ length: 14 }, (_, i) => addDays(new Date(), i + 1)).map((date) => {
+                        const dateStr = format(date, 'yyyy-MM-dd');
+                        const bookingCount = monthBookings[dateStr] || 0;
+                        const isFullyBooked = bookingCount >= timeSlots.length;
+                        const isPartiallyBooked = bookingCount > 0 && bookingCount < timeSlots.length;
+                        const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
+                        
+                        return (
+                          <button
+                            key={dateStr}
+                            type="button"
+                            onClick={() => setSelectedDate(date)}
+                            className={`relative p-4 rounded-sm transition-all duration-300 border-2 text-center group ${
+                              isSelected
+                                ? 'bg-charcoal border-charcoal text-white shadow-xl -translate-y-1' 
+                                : isFullyBooked
+                                  ? 'bg-rose-50 border-rose-100 text-rose-300 cursor-not-allowed'
+                                  : 'bg-white border-slate-100 text-charcoal hover:border-amber hover:bg-slate-50 hover:-translate-y-0.5'
+                            }`}
+                          >
+                            <div className="flex flex-col items-center">
+                              <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${
+                                isSelected ? 'text-amber' : 'text-charcoal/40'
+                              }`}>
+                                {format(date, 'EEE')}
+                              </span>
+                              <span className="text-2xl font-display font-bold leading-none mb-1">
+                                {format(date, 'd')}
+                              </span>
+                              <span className={`text-[10px] uppercase font-bold tracking-tighter ${
+                                isSelected ? 'text-white/60' : 'text-charcoal/40'
+                              }`}>
+                                {format(date, 'MMM')}
+                              </span>
+                            </div>
+
+                            {/* Status Indicator Dot */}
+                            <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
+                              isSelected 
+                                ? 'bg-amber animate-pulse' 
+                                : isFullyBooked 
+                                  ? 'bg-rose-500' 
+                                  : isPartiallyBooked 
+                                    ? 'bg-amber' 
+                                    : 'bg-emerald-500'
+                            }`} />
+
+                            <div className={`mt-2 text-[8px] uppercase font-black tracking-wider ${
+                              isSelected ? 'text-amber/80' : isFullyBooked ? 'text-rose-300' : 'text-charcoal/20'
+                            }`}>
+                              {isSelected ? 'Selected' : isFullyBooked ? 'Fully Booked' : isPartiallyBooked ? 'Partial' : 'Available'}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -546,15 +580,15 @@ export default function Contact() {
                         <div className="flex flex-wrap gap-x-6 gap-y-3">
                           <p className="w-full text-[8px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Calendar Days</p>
                           <div className="flex items-center gap-2.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                            <span className="text-xs font-bold text-charcoal/80">Open Slots</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+                            <span className="text-xs font-bold text-charcoal/80">Available</span>
                           </div>
                           <div className="flex items-center gap-2.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                            <span className="text-xs font-bold text-charcoal/80">Few Left</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-amber shadow-sm" />
+                            <span className="text-xs font-bold text-charcoal/80">Partial</span>
                           </div>
                           <div className="flex items-center gap-2.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm" />
                             <span className="text-xs font-bold text-charcoal/80">Full</span>
                           </div>
                         </div>
