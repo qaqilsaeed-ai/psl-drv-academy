@@ -499,8 +499,11 @@ export default function Contact() {
                             {dates.map((date) => {
                               const dateStr = format(date, 'yyyy-MM-dd');
                               const bookingCount = monthBookings[dateStr] || 0;
-                              const isFullyBooked = bookingCount >= timeSlots.length;
-                              const isPartiallyBooked = bookingCount > 0 && bookingCount < timeSlots.length;
+                              const isFriday = format(date, 'EEEE') === 'Friday';
+                              const daySlotsCount = isFriday ? 4 : timeSlots.length; // 4 slots for 9-11 window (09:00 to 10:30)
+                              
+                              const isFullyBooked = bookingCount >= daySlotsCount;
+                              const isPartiallyBooked = bookingCount > 0 && bookingCount < daySlotsCount;
                               const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
                               
                               return (
@@ -636,33 +639,49 @@ export default function Contact() {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-4 gap-2">
-                      {timeSlots.map((time) => {
-                        const requiredSlots = getRequiredSlots(time, selectedDuration);
-                        
-                        // Check if any part of the requested duration goes beyond the available slots
-                        const lastPossibleSlot = timeSlots[timeSlots.length - 1];
-                        const lastRequestedSlot = requiredSlots[requiredSlots.length - 1];
-                        
-                        // Simple string comparison works for HH:mm format
-                        const isOutOfBounds = lastRequestedSlot > lastPossibleSlot;
-                        
-                        const isBooked = requiredSlots.some(s => bookedSlots.includes(s));
-                        const isSelected = selectedTime === time;
-                        
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            disabled={isBooked || isOutOfBounds || isLoadingSlots}
-                            onClick={() => setSelectedTime(time)}
-                            className={`group relative py-3 px-4 rounded-sm text-sm font-bold transition-all duration-300 border-2 ${
-                              isSelected
-                                ? 'bg-amber border-amber text-charcoal shadow-lg -translate-y-1' 
-                                : isBooked || isOutOfBounds
-                                  ? 'bg-rose-50 border-rose-100 text-rose-300 cursor-not-allowed'
-                                  : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:border-emerald-500 hover:bg-emerald-100 hover:-translate-y-0.5'
-                            }`}
-                          >
+                      {timeSlots
+                        .filter(time => {
+                          if (!selectedDate) return true;
+                          const isFriday = format(selectedDate, 'EEEE') === 'Friday';
+                          if (isFriday) {
+                            // Only 09:00, 09:30, 10:00, 10:30 are valid starts for 9-11 window
+                            return time >= '09:00' && time <= '10:30';
+                          }
+                          return true;
+                        })
+                        .map((time) => {
+                          const requiredSlots = getRequiredSlots(time, selectedDuration);
+                          
+                          // Check if any part of the requested duration goes beyond the available slots
+                          let isOutOfBounds = false;
+                          const isFriday = selectedDate && format(selectedDate, 'EEEE') === 'Friday';
+                          
+                          if (isFriday) {
+                            // For Friday, any slot >= 11:00 is out of bounds
+                            isOutOfBounds = requiredSlots.some(slot => slot >= '11:00');
+                          } else {
+                            const lastPossibleSlot = timeSlots[timeSlots.length - 1];
+                            const lastRequestedSlot = requiredSlots[requiredSlots.length - 1];
+                            isOutOfBounds = lastRequestedSlot > lastPossibleSlot;
+                          }
+                          
+                          const isBooked = requiredSlots.some(s => bookedSlots.includes(s));
+                          const isSelected = selectedTime === time;
+                          
+                          return (
+                            <button
+                              key={time}
+                              type="button"
+                              disabled={isBooked || isOutOfBounds || isLoadingSlots}
+                              onClick={() => setSelectedTime(time)}
+                              className={`group relative py-3 px-4 rounded-sm text-sm font-bold transition-all duration-300 border-2 ${
+                                isSelected
+                                  ? 'bg-amber border-amber text-charcoal shadow-lg -translate-y-1' 
+                                  : isBooked || isOutOfBounds
+                                    ? 'bg-rose-50 border-rose-100 text-rose-300 cursor-not-allowed'
+                                    : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:border-emerald-500 hover:bg-emerald-100 hover:-translate-y-0.5'
+                              }`}
+                            >
                             <div className="flex flex-col items-center">
                               <span>{time}</span>
                               <span className={`text-[8px] uppercase tracking-tighter mt-0.5 ${
