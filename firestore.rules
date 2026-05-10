@@ -37,11 +37,13 @@ service cloud.firestore {
     // --- Validation Blueprints ---
 
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'email', 'displayName', 'photoURL', 'role']) &&
-             data.keys().size() == 5 &&
+      let allowedKeys = ['uid', 'email', 'displayName', 'photoURL', 'role', 'lastLogin'];
+      let requiredKeys = ['uid', 'email', 'role'];
+      return data.keys().hasAll(requiredKeys) &&
+             data.keys().hasOnly(allowedKeys) &&
              data.uid == request.auth.uid &&
              data.email is string && data.email.size() <= 256 &&
-             data.displayName is string && data.displayName.size() <= 256 &&
+             (data.get('displayName', null) == null || (data.displayName is string && data.displayName.size() <= 256)) &&
              (data.get('photoURL', null) == null || (data.photoURL is string && data.photoURL.size() <= 2048)) &&
              data.role in ['user', 'admin'];
     }

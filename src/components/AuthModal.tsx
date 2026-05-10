@@ -39,13 +39,16 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
       }
       onClose();
     } catch (error: any) {
-      console.error('Auth error:', error);
-      let message = 'An error occurred. Please try again.';
+      console.error('Auth error detail:', error);
+      let message = error.message || 'An error occurred. Please try again.';
       if (error.code === 'auth/email-already-in-use') message = 'Email already in use.';
       if (error.code === 'auth/invalid-email') message = 'Invalid email address.';
-      if (error.code === 'auth/weak-password') message = 'Password is too weak.';
+      if (error.code === 'auth/weak-password') message = 'Password is too weak (min 6 characters).';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         message = 'Invalid email or password.';
+      }
+      if (error.code === 'auth/operation-not-allowed') {
+        message = 'Email/Password sign-up is not enabled in Firebase Console.';
       }
       toast.error(message);
     } finally {
@@ -60,11 +63,15 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
       toast.success('Signed in with Google!');
       onClose();
     } catch (error: any) {
-      console.error('Google Auth error:', error);
+      console.error('Google Auth error detail:', error);
       if (error.code === 'auth/popup-blocked') {
-        toast.error('Sign-in popup was blocked by your browser.');
-      } else if (error.code !== 'auth/cancelled-popup-request') {
-        toast.error('Failed to sign in with Google.');
+        toast.error('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        toast.error('Google sign-in is not enabled in your Firebase project. Please enable it in the Firebase Console.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        toast.error('This domain is not authorized for Firebase Auth. Add this URL to "Authorized domains" in Firebase Console.');
+      } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+        toast.error(error.message || 'Failed to sign in with Google.');
       }
     } finally {
       setIsLoading(false);
