@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Public and private information about a user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "email": { "type": "string", "description": "The email address of the user." },
+        "displayName": { "type": "string", "description": "The display name of the user." },
+        "photoURL": { "type": "string", "description": "The URL of the user's profile photo." },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "The role of the user." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Booking": {
+      "title": "Lesson Booking",
+      "description": "Details about a driving lesson booking.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the student." },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "address1": { "type": "string" },
+        "address2": { "type": "string" },
+        "city": { "type": "string" },
+        "postcode": { "type": "string" },
+        "service": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["booking", "inquiry"] },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "phone", "type", "createdAt"]
+    },
+    "Inquiry": {
+      "title": "General Inquiry",
+      "description": "Contact form submission for general questions.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "service": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["inquiry"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "type", "createdAt"]
+    },
+    "Availability": {
+      "title": "Slot Availability",
+      "description": "Record of a slot being booked.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "bookingId": { "type": "string" }
+      },
+      "required": ["date", "time", "bookingId"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Individual user profile records."
+    },
+    "bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Lesson bookings submitted by students."
+    },
+    "inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "General contact inquiries."
+    },
+    "availability/{slotId}": {
+      "schema": "Availability",
+      "description": "Tracking of taken slots for the calendar."
+    }
+  }
+}

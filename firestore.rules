@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'qaqilsaeed@gmail.com'
+      );
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'photoURL', 'role']) &&
+             data.keys().size() == 5 &&
+             data.uid == request.auth.uid &&
+             data.email is string && data.email.size() <= 256 &&
+             data.displayName is string && data.displayName.size() <= 256 &&
+             (data.get('photoURL', null) == null || (data.photoURL is string && data.photoURL.size() <= 2048)) &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['name', 'email', 'phone', 'type', 'createdAt']) &&
+             data.name is string && data.name.size() <= 256 &&
+             data.email is string && data.email.size() <= 256 &&
+             data.phone is string && data.phone.size() <= 32 &&
+             data.type in ['booking', 'inquiry'] &&
+             data.createdAt == request.time &&
+             (data.get('userId', null) == null || data.userId == request.auth.uid);
+    }
+
+    function isValidAvailability(data) {
+      return data.keys().hasAll(['date', 'time', 'bookingId']) &&
+             data.keys().size() == 3 &&
+             data.date is string && data.date.size() == 10 &&
+             data.time is string && data.time.size() <= 10 &&
+             isValidId(data.bookingId);
+    }
+
+    // --- Collections ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL']);
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if (isSignedIn() && (existing().userId == request.auth.uid)) || isAdmin();
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isValidBooking(incoming());
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      allow create: if isValidBooking(incoming());
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /availability/{slotId} {
+      allow read: if true;
+      allow create: if isValidAvailability(incoming()) && (
+        isAdmin() || 
+        existsAfter(/databases/$(database)/documents/bookings/$(incoming().bookingId))
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow read: if isSignedIn();
+    }
+  }
+}

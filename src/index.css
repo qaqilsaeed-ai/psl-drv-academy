@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+/* @import "react-day-picker/dist/style.css"; */
+
+@theme {
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --color-charcoal: oklch(18% 0.02 270);
+  --color-charcoal-light: oklch(25% 0.02 270);
+  --color-amber: oklch(82% 0.17 80);
+  --color-amber-dark: oklch(72% 0.17 70);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-charcoal font-sans;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-display;
+}
+
+.section-diagonal {
+  clip-path: polygon(0 0, 100% 4%, 100% 100%, 0 96%);
+}
+
+.section-diagonal-top {
+  clip-path: polygon(0 4%, 100% 0, 100% 100%, 0 100%);
+}
+
+.section-diagonal-bottom {
+  clip-path: polygon(0 0, 100% 0, 100% 96%, 0 100%);
+}
+
+.amber-underline {
+  @apply inline-block relative;
+}
+
+.amber-underline:after {
+  content: '';
+  @apply bg-amber w-[60px] h-[3px] absolute -bottom-1 left-0;
+}
+
+/* Custom DayPicker Styles */
+.rdp-custom {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: var(--color-amber);
+  --rdp-background-color: var(--color-amber-dark);
+  margin: 0;
+  width: 100% !important;
+  max-width: 320px;
+}
+
+.rdp-months {
+  justify-content: center !important;
+}
+
+.rdp-day {
+  position: relative !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  width: var(--rdp-cell-size) !important;
+  height: var(--rdp-cell-size) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  background-color: var(--color-charcoal-light) !important;
+  color: white !important;
+}
+
+.rdp-day_fully-booked:after,
+.rdp-day_partially-booked:after,
+.rdp-day_available:after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.rdp-day_fully-booked:after {
+  background-color: rgb(244 63 94); /* Rose 500 */
+}
+
+.rdp-day_partially-booked:after {
+  background-color: rgb(245 158 11); /* Amber 500 */
+}
+
+.rdp-day_available:after {
+  background-color: rgb(16 185 129); /* Emerald 500 */
+}
+
+.rdp-day_selected {
+  background-color: var(--color-amber) !important;
+  color: var(--color-charcoal) !important;
+}
+
+.rdp-day_today {
+  color: var(--color-amber) !important;
+  border-bottom: 2px solid var(--color-amber);
+}
+
