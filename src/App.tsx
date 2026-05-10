@@ -10,6 +10,7 @@ import Hero from './components/Hero';
 import Courses from './components/Courses';
 import HowItWorks from './components/HowItWorks';
 import WhyChooseUs from './components/WhyChooseUs';
+import MeetTheInstructor from './components/MeetTheInstructor';
 import Testimonials from './components/Testimonials';
 import Pricing from './components/Pricing';
 import SpecialOffer from './components/SpecialOffer';
@@ -30,6 +31,7 @@ export default function App() {
         <Courses />
         <HowItWorks />
         <WhyChooseUs />
+        <MeetTheInstructor />
         <Testimonials />
         <Pricing />
         <SpecialOffer />

@@ -16,6 +16,7 @@ export default function Contact() {
   const [contactMode, setContactMode] = useState<'booking' | 'inquiry'>('booking');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(addDays(new Date(), 1));
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedDuration, setSelectedDuration] = useState<number>(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [monthBookings, setMonthBookings] = useState<Record<string, number>>({});
@@ -111,8 +112,31 @@ export default function Contact() {
   }, [selectedDate]);
 
   const timeSlots = [
-    '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
+    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+    '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'
   ];
+
+  const durations = [
+    { label: '1 Hour', value: 60 },
+    { label: '1.5 Hours', value: 90 },
+    { label: '2 Hours', value: 120 },
+    { label: '3 Hours', value: 180 }
+  ];
+
+  const getRequiredSlots = (startTime: string, durationMinutes: number) => {
+    const slots = [];
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const numSlots = durationMinutes / 30;
+    
+    for (let i = 0; i < numSlots; i++) {
+      const totalMinutes = hours * 60 + minutes + (i * 30);
+      const sHours = Math.floor(totalMinutes / 60);
+      const sMinutes = totalMinutes % 60;
+      slots.push(`${sHours.toString().padStart(2, '0')}:${sMinutes.toString().padStart(2, '0')}`);
+    }
+    return slots;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -151,6 +175,7 @@ export default function Contact() {
         type: contactMode,
         date: contactMode === 'booking' ? format(selectedDate!, 'yyyy-MM-dd') : null,
         time: contactMode === 'booking' ? selectedTime : null,
+        duration: contactMode === 'booking' ? selectedDuration : null,
         createdAt: serverTimestamp()
       };
 
@@ -160,14 +185,18 @@ export default function Contact() {
       if (contactMode === 'booking') {
         const batch = writeBatch(db);
         const bookingRef = doc(collection(db, 'bookings'));
-        const slotId = `${bookingData.date}_${bookingData.time}`;
-        const slotRef = doc(db, 'availability', slotId);
-        
+        const requiredSlots = getRequiredSlots(bookingData.time!, bookingData.duration!);
+
         batch.set(bookingRef, bookingData);
-        batch.set(slotRef, {
-          date: bookingData.date,
-          time: bookingData.time,
-          bookingId: bookingRef.id
+        
+        requiredSlots.forEach(slotTime => {
+          const slotId = `${bookingData.date}_${slotTime}`;
+          const slotRef = doc(db, 'availability', slotId);
+          batch.set(slotRef, {
+            date: bookingData.date,
+            time: slotTime,
+            bookingId: bookingRef.id
+          });
         });
         
         try {
@@ -532,21 +561,54 @@ export default function Contact() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                    {/* Duration Selection */}
+                    <div className="mb-6">
+                      <p className="text-[10px] uppercase font-black text-charcoal/40 tracking-[0.2em] mb-3">Select Duration</p>
+                      <div className="flex flex-wrap gap-2">
+                        {durations.map((d) => (
+                          <button
+                            key={d.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedDuration(d.value);
+                              setSelectedTime(''); // Reset time when duration changes to re-validate
+                            }}
+                            className={`flex-1 min-w-[80px] py-2 px-3 rounded-sm text-xs font-bold transition-all border-2 ${
+                              selectedDuration === d.value
+                                ? 'bg-amber border-amber text-charcoal shadow-sm'
+                                : 'bg-white border-slate-100 text-slate-500 hover:border-amber/50 hover:bg-slate-50'
+                            }`}
+                          >
+                            {d.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-4 gap-2">
                       {timeSlots.map((time) => {
-                        const isBooked = bookedSlots.includes(time);
+                        const requiredSlots = getRequiredSlots(time, selectedDuration);
+                        
+                        // Check if any part of the requested duration goes beyond the available slots
+                        const lastPossibleSlot = timeSlots[timeSlots.length - 1];
+                        const lastRequestedSlot = requiredSlots[requiredSlots.length - 1];
+                        
+                        // Simple string comparison works for HH:mm format
+                        const isOutOfBounds = lastRequestedSlot > lastPossibleSlot;
+                        
+                        const isBooked = requiredSlots.some(s => bookedSlots.includes(s));
                         const isSelected = selectedTime === time;
                         
                         return (
                           <button
                             key={time}
                             type="button"
-                            disabled={isBooked || isLoadingSlots}
+                            disabled={isBooked || isOutOfBounds || isLoadingSlots}
                             onClick={() => setSelectedTime(time)}
                             className={`group relative py-3 px-4 rounded-sm text-sm font-bold transition-all duration-300 border-2 ${
                               isSelected
                                 ? 'bg-amber border-amber text-charcoal shadow-lg -translate-y-1' 
-                                : isBooked
+                                : isBooked || isOutOfBounds
                                   ? 'bg-rose-50 border-rose-100 text-rose-300 cursor-not-allowed'
                                   : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:border-emerald-500 hover:bg-emerald-100 hover:-translate-y-0.5'
                             }`}
@@ -554,18 +616,18 @@ export default function Contact() {
                             <div className="flex flex-col items-center">
                               <span>{time}</span>
                               <span className={`text-[8px] uppercase tracking-tighter mt-0.5 ${
-                                isSelected ? 'text-charcoal/60' : isBooked ? 'text-rose-300' : 'text-emerald-600/60'
+                                isSelected ? 'text-charcoal/60' : isBooked || isOutOfBounds ? 'text-rose-300' : 'text-emerald-600/60'
                               }`}>
-                                {isSelected ? 'Selected' : isBooked ? 'Booked' : 'Available'}
+                                {isSelected ? 'Selected' : isBooked ? 'Booked' : isOutOfBounds ? 'Too Long' : 'Available'}
                               </span>
                             </div>
                             
-                            {isBooked && (
+                            {(isBooked || isOutOfBounds) && (
                               <div className="absolute top-1 right-1">
                                 <AlertCircle className="w-3 h-3 text-rose-400" />
                               </div>
                             )}
-                            {!isBooked && !isSelected && (
+                            {!isBooked && !isSelected && !isOutOfBounds && (
                               <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                               </div>
@@ -588,7 +650,7 @@ export default function Contact() {
                           <div>
                             <p className="text-[10px] uppercase font-bold text-charcoal/60 tracking-widest leading-none mb-1">Your Selected Slot</p>
                             <p className="text-charcoal font-display font-bold text-lg leading-none">
-                              {format(selectedDate, 'EEE, MMM do')} @ {selectedTime}
+                              {format(selectedDate, 'EEE, MMM do')} @ {selectedTime} ({durations.find(d => d.value === selectedDuration)?.label})
                             </p>
                           </div>
                         </div>
@@ -807,13 +869,20 @@ export default function Contact() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-slate-50 rounded-sm border border-border">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Duration</p>
+                      <p className="text-charcoal font-bold text-sm">
+                        {durations.find(d => d.value === selectedDuration)?.label}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-sm border border-border">
                       <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Service</p>
                       <p className="text-charcoal font-bold text-sm">{formData.service}</p>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-sm border border-border">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Location</p>
-                      <p className="text-charcoal font-bold text-sm">{formData.city}</p>
-                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-sm border border-border">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Location</p>
+                    <p className="text-charcoal font-bold text-sm">{formData.address1 ? `${formData.address1}, ` : ''}{formData.city}</p>
                   </div>
 
                   <div className="p-3 bg-slate-50 rounded-sm border border-border">
@@ -892,7 +961,9 @@ export default function Contact() {
                   <h4 className="font-display text-xl font-bold text-charcoal mb-1">
                     {format(parse(lastBooking.date, 'yyyy-MM-dd', new Date()), 'EEEE, MMMM do')}
                   </h4>
-                  <p className="text-charcoal/60 font-bold text-lg mb-4">at {lastBooking.time}</p>
+                  <p className="text-charcoal/60 font-bold text-lg mb-4">
+                    at {lastBooking.time} ({durations.find(d => d.value === lastBooking.duration)?.label})
+                  </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <span className="px-3 py-1 bg-charcoal/5 rounded-sm text-[10px] font-bold text-charcoal/60 uppercase">{lastBooking.service}</span>
                     <span className="px-3 py-1 bg-charcoal/5 rounded-sm text-[10px] font-bold text-charcoal/60 uppercase">{lastBooking.city}</span>
@@ -912,7 +983,7 @@ export default function Contact() {
                           description: `Driving lesson with Kaz at PSL Driving Academy. Service: ${lastBooking.service}.`,
                           location: lastBooking.city,
                           startDate: parse(`${lastBooking.date} ${lastBooking.time}`, 'yyyy-MM-dd HH:mm', new Date()),
-                          durationInHours: 1
+                          durationInHours: lastBooking.duration / 60
                         };
                         window.open(generateGoogleCalendarUrl(event), '_blank');
                       }}
@@ -932,7 +1003,7 @@ export default function Contact() {
                           description: `Driving lesson with Kaz at PSL Driving Academy. Service: ${lastBooking.service}.`,
                           location: lastBooking.city,
                           startDate: parse(`${lastBooking.date} ${lastBooking.time}`, 'yyyy-MM-dd HH:mm', new Date()),
-                          durationInHours: 1
+                          durationInHours: lastBooking.duration / 60
                         };
                         window.open(generateOutlookCalendarUrl(event), '_blank');
                       }}
@@ -951,7 +1022,7 @@ export default function Contact() {
                         description: `Driving lesson with Kaz at PSL Driving Academy. Service: ${lastBooking.service}.`,
                         location: lastBooking.city,
                         startDate: parse(`${lastBooking.date} ${lastBooking.time}`, 'yyyy-MM-dd HH:mm', new Date()),
-                        durationInHours: 1
+                        durationInHours: lastBooking.duration / 60
                       };
                       const link = document.createElement('a');
                       link.href = generateIcsFile(event);

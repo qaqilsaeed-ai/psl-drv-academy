@@ -31,6 +31,7 @@
         "type": { "type": "string", "enum": ["booking", "inquiry"] },
         "date": { "type": "string", "format": "date" },
         "time": { "type": "string" },
+        "duration": { "type": "number", "description": "Duration in minutes (60, 90, 120, 180)." },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "email", "phone", "type", "createdAt"]
