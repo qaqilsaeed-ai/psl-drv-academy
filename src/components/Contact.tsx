@@ -368,13 +368,13 @@ export default function Contact() {
                   </div>
                 </div>
 
-                <a href="mailto:kaqilsaeed@gmail.com" className="flex items-start gap-3 group">
+                <a href="mailto:qaqilsaeed@gmail.com" className="flex items-start gap-3 group">
                   <div className="w-10 h-10 rounded-sm bg-amber/10 flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-amber" />
                   </div>
                   <div>
                     <p className="text-white/50 text-xs uppercase tracking-wider mb-0.5">Email</p>
-                    <p className="text-white group-hover:text-amber transition-colors font-medium">kaqilsaeed@gmail.com</p>
+                    <p className="text-white group-hover:text-amber transition-colors font-medium">qaqilsaeed@gmail.com</p>
                   </div>
                 </a>
 
