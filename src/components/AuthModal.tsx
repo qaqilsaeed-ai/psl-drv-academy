@@ -50,6 +50,9 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
       if (error.code === 'auth/operation-not-allowed') {
         message = 'Email/Password sign-up is not enabled in Firebase Console.';
       }
+      if (error.code === 'auth/network-request-failed') {
+        message = 'Network error. Please check your internet connection or disable any ad-blockers/extensions blocking Google services.';
+      }
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -70,6 +73,8 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
         toast.error('Google sign-in is not enabled in your Firebase project. Please enable it in the Firebase Console.');
       } else if (error.code === 'auth/unauthorized-domain') {
         toast.error('This domain is not authorized for Firebase Auth. Add this URL to "Authorized domains" in Firebase Console.');
+      } else if (error.code === 'auth/network-request-failed') {
+        toast.error('Network error. Please check your internet connection or disable any ad-blockers blocking Google services.');
       } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
         toast.error(error.message || 'Failed to sign in with Google.');
       }
