@@ -64,7 +64,7 @@ export default function Navbar() {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isScrolled ? 'bg-charcoal/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
     }`}>
-      <div className="container flex items-center justify-between h-16 lg:h-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 lg:h-20">
         <a href="#home" className="flex items-center">
           <img 
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663254855538/XoYrtSEkR3QaKKDDgYw9AZ/psl-logo_90453986.webp" 
@@ -170,7 +170,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-charcoal/98 backdrop-blur-md border-t border-white/10 max-h-[80vh] overflow-y-auto">
-          <div className="container py-6 flex flex-col gap-4">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4">
             {user && (
               <div className="flex items-center gap-3 p-4 bg-white/5 rounded-sm mb-2">
                 {user.photoURL ? (

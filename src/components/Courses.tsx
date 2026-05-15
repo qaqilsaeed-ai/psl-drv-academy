@@ -53,7 +53,7 @@ const itemVariants = {
 export default function Courses() {
   return (
     <section id="services" className="py-20 lg:py-28">
-      <div className="container">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div 
           className="text-center mb-14"
           initial={{ opacity: 0, y: 20 }}

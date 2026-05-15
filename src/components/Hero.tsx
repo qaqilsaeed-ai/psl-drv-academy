@@ -18,7 +18,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal via-charcoal/85 to-charcoal/40" />
       </div>
 
-      <div className="container relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24">
         <div className="max-w-2xl">
           <motion.div
             initial={{ opacity: 0, x: -40 }}

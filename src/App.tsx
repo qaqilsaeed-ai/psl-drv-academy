@@ -23,7 +23,7 @@ import StudentResources from './components/StudentResources';
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Toaster position="top-center" richColors />
       <Navbar />
       <main>

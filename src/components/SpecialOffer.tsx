@@ -7,7 +7,7 @@ const OFFER_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663254855538/Xo
 export default function SpecialOffer() {
   return (
     <section className="py-20 lg:py-28 relative overflow-hidden">
-      <div className="container">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div 
           className="relative rounded-sm overflow-hidden"
           initial={{ opacity: 0, y: 30 }}

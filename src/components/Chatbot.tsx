@@ -34,30 +34,34 @@ export default function Chatbot() {
     setIsLoading(true);
 
     try {
-      const response = await ai.models.generateContent({
+      // Use the chat session API for better state management
+      const chat = ai.chats.create({
         model: "gemini-3-flash-preview",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `You are a helpful assistant for PSL Driving Academy, a driving school in Sheffield and Rotherham. 
-            Lead instructor is Kaz. 
-            Services: Manual Lessons (£35/hr), Automatic Lessons (£36/hr), Intensive Courses, Advanced Training.
-            Contact: 07429 494 921.
-            
-            User message: ${userMessage}` }]
-          }
-        ],
         config: {
-          systemInstruction: "You are a friendly and professional assistant for PSL Driving Academy. Answer questions about driving lessons, pricing, and the booking process. Keep responses concise and helpful. Use Google Search to provide accurate information about local driving test centers or current UK driving laws if asked.",
+          systemInstruction: `You are a friendly and professional assistant for PSL Driving Academy, a driving school in Sheffield and Rotherham. 
+          Lead instructor is Kaz. 
+          Services: Manual Lessons (£35/hr), Automatic Lessons (£36/hr), Intensive Courses, Advanced Training.
+          Contact: 07429 494 921.
+          Answer questions concisely and helpfully. If asked about local driving test centers or current UK driving laws, provide accurate information.`,
           tools: [{ googleSearch: {} }]
-        }
+        },
+        // Convert history to Gemini format
+        history: messages.slice(1).map(m => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }]
+        }))
+      });
+
+      const response = await chat.sendMessage({ 
+        message: userMessage 
       });
 
       const botResponse = response.text || "I'm sorry, I couldn't process that. Please try again or contact Kaz directly.";
       setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I'm having trouble connecting right now. Please call us at 07429 494 921." }]);
+      const errorMessage = error?.message || "connection issues";
+      setMessages(prev => [...prev, { role: 'bot', text: `Sorry, I'm having trouble connecting right now (${errorMessage}). Please call us at 07429 494 921.` }]);
     } finally {
       setIsLoading(false);
     }
